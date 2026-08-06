@@ -1,0 +1,57 @@
+<script>
+        const CLOUD_FUNCTION_URL = "https://europe-central2-bazadanycherpwannabe.cloudfunctions.net/check-order";
+        let isScanning = true;
+
+        function fetchOrderData(code) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = "";
+            resultDiv.innerText = "Sprawdzanie w bazie...";
+
+            fetch(`${CLOUD_FUNCTION_URL}?barcode=${encodeURIComponent(code)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "found") {
+                        resultDiv.className = "found";
+                        let html = `<b>Znaleziono zamówienie! Liczba pozycji: ${data.items.length}</b><br><hr>`;
+                        data.items.forEach(item => {
+                            html += `<small>Zamówienie: <b>${item.orderNumber}</b> | Produkt: ${item.barcode}</small><br>`;
+                        });
+                        resultDiv.innerHTML = html;
+                    } else {
+                        resultDiv.className = "not-found";
+                        resultDiv.innerText = `Brak w bazie dla kodu: ${code}`;
+                    }
+                })
+                .catch(error => {
+                    resultDiv.className = "not-found";
+                    resultDiv.innerText = "Błąd połączenia z chmurą!";
+                    console.error(error);
+                });
+        }
+
+        function searchManual() {
+            const val = document.getElementById('manualInput').value.trim();
+            if (val) {
+                fetchOrderData(val);
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (!isScanning) return;
+            isScanning = false;
+            
+            document.getElementById('manualInput').value = decodedText;
+            fetchOrderData(decodedText);
+
+            setTimeout(() => { isScanning = true; }, 3000);
+        }
+
+        const html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            onScanSuccess
+        ).catch(err => {
+            document.getElementById('result').innerText = "Kamera niedostępna (wymagany HTTPS). Użyj wpisywania ręcznego.";
+        });
+    </script>

@@ -100,35 +100,21 @@
             setTimeout(() => { isScanning = true; }, 3000);
         }
 
-        // Uruchomienie skanera aparatu
+        // Uruchomienie skanera aparatu ze stabilną konfiguracją
         const html5QrCode = new Html5Qrcode("reader");
         
-        // Konfiguracja zoptymalizowana pod kątem mniejszych kodów i ostrości
         const qrConfig = { 
-            fps: 15, 
-            qrbox: { width: 280, height: 120 },
-            aspectRatio: 1.0
+            fps: 20, 
+            qrbox: { width: 300, height: 150 }
         };
 
-        // Próbujemy wymusić zaawansowane ustawienia strumienia (fokus / zbliżenie)
         html5QrCode.start(
-            { 
-                facingMode: "environment",
-                // Próba wymuszenia ciągłego autofokusa, jeśli urządzenie/przeglądarka na to pozwala
-                advanced: [{ focusMode: "continuous" }] 
-            }, 
+            { facingMode: "environment" }, 
             qrConfig, 
             onScanSuccess
         ).catch(err => {
-            // Awaryjny fallback, gdyby przeglądarka odrzuciła 'advanced'
-            console.warn("Zaawansowane tryby niedostępne, startuję standardowo:", err);
-            html5QrCode.start(
-                { facingMode: "environment" },
-                qrConfig,
-                onScanSuccess
-            ).catch(fallbackErr => {
-                document.getElementById('result').innerText = "Kamera niedostępna (wymagany HTTPS). Użyj wpisywania ręcznego.";
-            });
+            console.error("Błąd startu kamery:", err);
+            document.getElementById('result').innerText = "Kamera niedostępna (wymagany HTTPS). Użyj wpisywania ręcznego.";
         });
     </script>
 </body>

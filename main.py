@@ -29,12 +29,12 @@ def check_order(request):
     if not barcode_val:
         return jsonify({"error": "Brak kodu w żądaniu"}), 400, headers
 
-    # Zaktualizowane zapytanie SQL zgodnie z Twoim wymaganiem
+    # Jawne rzutowanie orderNumber na STRING w zapytaniu unika konfliktów typów
     query = """
         SELECT * 
         FROM `bazadanycherpwannabe.Overview.PackingOverview` 
-        WHERE orderNumber IN (
-            SELECT orderNumber 
+        WHERE CAST(orderNumber AS STRING) IN (
+            SELECT CAST(orderNumber AS STRING)
             FROM `bazadanycherpwannabe.Overview.PackingOverview` 
             WHERE barcode = @barcode_val
         )
@@ -42,13 +42,21 @@ def check_order(request):
     
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
-            bigquery.ScalarQueryParameter("barcode_val", "STRING", str(barcode_val))
+            bigquery.ScalarQueryParameter("barcode_val", "STRING", str(barcode_val).strip())
         ]
     )
 
     try:
         query_job = bq_client.query(query, job_config=job_config)
-        results = [dict(row) for row in query_job.result()] # Konwersja wyników na słowniki JSON
+        
+        results = []
+        for row in query_job.result():
+            row_dict = dict(row)
+            # Konwersja pól typu datetime/date do stringa, żeby Flask / jsonify się nie wyłożył
+            for key, val in row_dict.items():
+                if hasattr(val, 'isoformat'):
+                    row_dict[key] = val.isoformat()
+            results.append(row_dict)
 
         if results:
             return jsonify({
@@ -62,4 +70,4 @@ def check_order(request):
             }), 404, headers
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500, headers
+        return jsonify({"error": str(e)}), 500, headerss

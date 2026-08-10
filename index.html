@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Packing Checker</title>
+    <!-- Biblioteka do skanowania -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #reader { width: 100%; max-width: 500px; margin: 0 auto; }
-        #result { margin-top: 20px; font-size: 18px; padding: 10px; }
-        .found { background-color: #d4edda; color: #155724; text-align: left; display: inline-block; padding: 15px; border-radius: 5px; }
-        .not-found { background-color: #f8d4d4; color: #721c24; }
-        .item-row { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #c3e6cb; padding-bottom: 10px; }
-        .item-row img { width: 60px; height: 60px; object-fit: cover; margin-right: 15px; border-radius: 4px; border: 1px solid #ccc; }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; }
+        #reader { width: 100%; max-width: 500px; margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #result { margin-top: 20px; font-size: 16px; padding: 15px; border-radius: 8px; display: inline-block; width: 100%; max-width: 600px; box-sizing: border-box; text-align: left; }
+        .found { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .not-found { background-color: #f8d4d4; color: #721c24; border: 1px solid #f5c6cb; text-align: center; }
+        .item-row { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #c3e6cb; padding-bottom: 12px; }
+        .item-row img { width: 60px; height: 60px; object-fit: cover; margin-right: 15px; border-radius: 4px; border: 1px solid #ccc; background: #fff; }
+        .search-box { margin-top: 20px; }
+        input[type="text"] { padding: 8px; font-size: 16px; width: 220px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 15px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px; }
+        button:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
 
     <h1>Sprawdzanie Zamówień</h1>
     
+    <!-- Element kamery -->
     <div id="reader"></div>
 
-    <div style="margin-top: 20px;">
+    <div class="search-box">
         <input type="text" id="manualInput" placeholder="Wpisz kod ręcznie...">
         <button onclick="searchManual()">Sprawdź</button>
     </div>
@@ -42,23 +48,23 @@
                 .then(data => {
                     if (data.status === "found") {
                         resultDiv.className = "found";
-                        let html = `<b>Znaleziono zamówienie! Liczba pozycji: ${data.items.length}</b><br><hr>";
+                        let html = `<b>Znaleziono zamówienie! Liczba pozycji: ${data.items.length}</b><br><hr>`;
                         
                         data.items.forEach(item => {
-                            // Tutaj masz wygenerowaną nazwę pliku, np. "22569539_TW-CUS-01_40x40-POL.SOFT-WOF_45407.jpg"
-                            let imageName = item.image_filename; 
-
-                            // Tutaj wklejasz swój link / strukturę do folderu Google Drive:
-                            // (Zakładając, że masz stały adres lub endpoint do miniaturek)
-                            let imageUrl = imageName ? `https://drive.google.com/drive/folders/1hY3KYW1NC3qCfCqrHEdcaBc24_b32Z7d?usp=drive_link/${imageName}` : '';
+                            // TUTAJ wklejasz link do swojego folderu Google Drive przed item.image_filename, np.:
+                            // let imageUrl = item.image_filename ? `https://lh3.googleusercontent.com/d/TWOJE_ID_FOLDERU/${item.image_filename}` : '';
+                            
+                            // Na razie dla testu ustawiamy pusty obrazek lub samą nazwę pliku:
+                            let imageName = item.image_filename || 'Brak pliku';
 
                             html += `
                                 <div class="item-row">
-                                    <!-- Tutaj wstawiamy miniaturkę -->
-                                    ${imageUrl ? `<img src="${imageUrl}" alt="Miniaturka">` : ''}
+                                    <!-- Miejsce na miniaturkę (gdy uzupełnisz link do folderu) -->
+                                    <!-- <img src="LINK_DO_FOLDERU/${item.image_filename}" alt="foto"> -->
                                     <div>
                                         <small>Zamówienie: <b>${item.orderNumber}</b></small><br>
-                                        <small>Produkt: <b>${item.barcode}</b></small><br>
+                                        <small>Produkt (Barcode): <b>${item.barcode}</b></small><br>
+                                        <small>Plik: <b>${imageName}</b></small>
                                     </div>
                                 </div>`;
                         });
@@ -82,6 +88,13 @@
             }
         }
 
+        // Obsługa klawisza Enter w polu tekstowym
+        document.getElementById("manualInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                searchManual();
+            }
+        });
+
         function onScanSuccess(decodedText, decodedResult) {
             if (!isScanning) return;
             isScanning = false;
@@ -92,13 +105,14 @@
             setTimeout(() => { isScanning = true; }, 3000);
         }
 
+        // Uruchomienie skanera aparatu
         const html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 150 } },
             onScanSuccess
         ).catch(err => {
-            document.getElementById('result').innerText = "Kamera niedostępna (wymagany HTTPS). Użyj wpisywania ręcznego.";
+            console.warn("Kamera niedostępna lub brak uprawnień HTTPS:", err);
         });
     </script>
 </body>

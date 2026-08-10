@@ -51,15 +51,15 @@
                         let html = `<b>Znaleziono zamówienie! Liczba pozycji: ${data.items.length}</b><br><hr>`;
                         
                         data.items.forEach(item => {
-                            let imageName = item.image_filename || '';
+                            let imageUrl = item.image_url || '';
 
                             html += `
                                 <div class="item-row" style="display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                                    <img src="https://lh3.googleusercontent.com/d/${imageName}" style="width: 70px; height: 70px; object-fit: cover; border: 1px solid #999; margin-right: 15px; background: #fff;" alt="foto">
+                                    <img src="${imageUrl}" style="width: 70px; height: 70px; object-fit: cover; border: 1px solid #999; margin-right: 15px; background: #fff;" alt="foto" onerror="this.style.display='none'">
                                     <div>
                                         <small>Zamówienie: <b>${item.orderNumber}</b></small><br>
                                         <small>Produkt (Barcode): <b>${item.barcode}</b></small><br>
-                                        <small>Plik: <b>${imageName}</b></small>
+                                        <small>Plik: <b>${item.image_filename}</b></small>
                                     </div>
                                 </div>`;
                         });

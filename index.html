@@ -55,12 +55,16 @@
                             // let imageUrl = item.image_filename ? `https://lh3.googleusercontent.com/d/TWOJE_ID_FOLDERU/${item.image_filename}` : '';
                             
                             // Na razie dla testu ustawiamy pusty obrazek lub samą nazwę pliku:
-                            let imageName = item.image_filename || 'Brak pliku';
+                            // Podstawiamy nazwę pliku, którą zwróciła chmura
+                            let imageName = item.image_filename; 
 
+                            // Tutaj wklejasz link do folderu. Jeśli pliki leżą na Google Drive, 
+                            // najpewniej potrzebujemy prostego endpointu lub podmienimy to na docelową ścieżkę.
+                            // Tymczasem zobaczmy, czy wygeneruje się poprawny kontener obrazka:
                             html += `
                                 <div class="item-row">
-                                    <!-- Miejsce na miniaturkę (gdy uzupełnisz link do folderu) -->
-                                    <!-- <img src="LINK_DO_FOLDERU/${item.image_filename}" alt="foto"> -->
+                                    <!-- Próbujemy wyrenderować miniaturkę -->
+                                    <img src="https://lh3.googleusercontent.com/d/${imageName.replace('.jpg', '')}" alt="Miniaturka" onerror="this.style.display='none'">
                                     <div>
                                         <small>Zamówienie: <b>${item.orderNumber}</b></small><br>
                                         <small>Produkt (Barcode): <b>${item.barcode}</b></small><br>

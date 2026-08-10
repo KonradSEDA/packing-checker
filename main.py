@@ -70,4 +70,4 @@ def check_order(request):
             }), 404, headers
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500, headerss
+        return jsonify({"error": str(e)}), 500, headers

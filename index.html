@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Packing Checker</title>
-    <!-- 1. Najpierw ładowanie zewnętrznej biblioteki -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
         #reader { width: 100%; max-width: 500px; margin: 0 auto; }
         #result { margin-top: 20px; font-size: 18px; padding: 10px; }
-        .found { background-color: #d4edda; color: #155724; }
+        .found { background-color: #d4edda; color: #155724; text-align: left; display: inline-block; padding: 15px; border-radius: 5px; }
         .not-found { background-color: #f8d4d4; color: #721c24; }
+        .item-row { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #c3e6cb; padding-bottom: 10px; }
+        .item-row img { width: 60px; height: 60px; object-fit: cover; margin-right: 15px; border-radius: 4px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
 
     <h1>Sprawdzanie Zamówień</h1>
     
-    <!-- Element, w którym uruchamia się kamera -->
     <div id="reader"></div>
 
     <div style="margin-top: 20px;">
@@ -28,7 +28,6 @@
 
     <div id="result"></div>
 
-    <!-- 2. Twój skrypt korzystający z biblioteki -->
     <script>
         const CLOUD_FUNCTION_URL = "https://europe-central2-bazadanycherpwannabe.cloudfunctions.net/check-order";
         let isScanning = true;
@@ -43,9 +42,25 @@
                 .then(data => {
                     if (data.status === "found") {
                         resultDiv.className = "found";
-                        let html = `<b>Znaleziono zamówienie! Liczba pozycji: ${data.items.length}</b><br><hr>`;
+                        let html = `<b>Znaleziono zamówienie! Liczba pozycji: ${data.items.length}</b><br><hr>";
+                        
                         data.items.forEach(item => {
-                            html += `<small>Zamówienie: <b>${item.orderNumber}</b> | Produkt: ${item.barcode}</small><br>`;
+                            // Tutaj masz wygenerowaną nazwę pliku, np. "22569539_TW-CUS-01_40x40-POL.SOFT-WOF_45407.jpg"
+                            let imageName = item.image_filename; 
+
+                            // Tutaj wklejasz swój link / strukturę do folderu Google Drive:
+                            // (Zakładając, że masz stały adres lub endpoint do miniaturek)
+                            let imageUrl = imageName ? `https://drive.google.com/drive/folders/1hY3KYW1NC3qCfCqrHEdcaBc24_b32Z7d?usp=drive_link/${imageName}` : '';
+
+                            html += `
+                                <div class="item-row">
+                                    <!-- Tutaj wstawiamy miniaturkę -->
+                                    ${imageUrl ? `<img src="${imageUrl}" alt="Miniaturka">` : ''}
+                                    <div>
+                                        <small>Zamówienie: <b>${item.orderNumber}</b></small><br>
+                                        <small>Produkt: <b>${item.barcode}</b></small><br>
+                                    </div>
+                                </div>`;
                         });
                         resultDiv.innerHTML = html;
                     } else {

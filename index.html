@@ -1,4 +1,35 @@
-<script>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packing Checker</title>
+    <!-- 1. Najpierw ładowanie zewnętrznej biblioteki -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #reader { width: 100%; max-width: 500px; margin: 0 auto; }
+        #result { margin-top: 20px; font-size: 18px; padding: 10px; }
+        .found { background-color: #d4edda; color: #155724; }
+        .not-found { background-color: #f8d4d4; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <h1>Sprawdzanie Zamówień</h1>
+    
+    <!-- Element, w którym uruchamia się kamera -->
+    <div id="reader"></div>
+
+    <div style="margin-top: 20px;">
+        <input type="text" id="manualInput" placeholder="Wpisz kod ręcznie...">
+        <button onclick="searchManual()">Sprawdź</button>
+    </div>
+
+    <div id="result"></div>
+
+    <!-- 2. Twój skrypt korzystający z biblioteki -->
+    <script>
         const CLOUD_FUNCTION_URL = "https://europe-central2-bazadanycherpwannabe.cloudfunctions.net/check-order";
         let isScanning = true;
 
@@ -55,3 +86,5 @@
             document.getElementById('result').innerText = "Kamera niedostępna (wymagany HTTPS). Użyj wpisywania ręcznego.";
         });
     </script>
+</body>
+</html>
